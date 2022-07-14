@@ -1,18 +1,13 @@
 package com.example.demo;
 
-import com.example.demo.Repo.ItemRepo;
+import com.example.demo.Repo.MeetingRepo;
+import com.example.demo.Repo.ReservationRepo;
 import com.example.demo.model.Meeting;
 import com.example.demo.model.Reservation;
-import io.swagger.v3.oas.models.ExternalDocumentation;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.info.License;
-import org.springdoc.core.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -29,20 +24,22 @@ import java.util.List;
 public class DemoApplication implements CommandLineRunner{
 
 	@Autowired
-	ItemRepo meetingRepo;
+    MeetingRepo meetingRepo;
 
-
+	@Autowired
+	ReservationRepo reservationRepo;
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);
 	}
 
 	void createMeetings() {
 		System.out.println("Data creation started...");
-		meetingRepo.save(new Meeting("1", "Whole Wheat Biscuit", 5, "spices","U", Arrays.asList(new Reservation("1", LocalDateTime.of(2022, Month.JULY,20,06,30),LocalDateTime.of(2022, Month.JULY,20,06,35),"sidtharth","C"))));
-		meetingRepo.save(new Meeting("2", "XYZ Kodo Millet healthy", 2, "millets","U",Arrays.asList(new Reservation("1", LocalDateTime.of(2022, Month.JULY,20,06,30),LocalDateTime.of(2022, Month.JULY,20,06,38),"sidtharth","C"))));
-		meetingRepo.save(new Meeting("3", "Dried Whole Red Chilli", 2, "spices","U",new ArrayList<>()));
-		meetingRepo.save(new Meeting("4", "Healthy Pearl Millet", 1, "millets","U",new ArrayList<>()));
-		meetingRepo.save(new Meeting("5", "Bonny Cheese Crackers Plain", 6, "snacks","U",new ArrayList<>()));
+		meetingRepo.save(new Meeting("1", "Whole Wheat Biscuit", 5, "spices","O"));
+		meetingRepo.save(new Meeting("2", "XYZ Kodo Millet healthy", 2, "millets","O"));
+		meetingRepo.save(new Meeting("3", "Dried Whole Red Chilli", 2, "spices","U"));
+		meetingRepo.save(new Meeting("4", "Healthy Pearl Millet", 1, "millets","U"));
+		meetingRepo.save(new Meeting("5", "Bonny Cheese Crackers Plain", 6, "snacks","U"));
+		reservationRepo.save(new Reservation("1","1",LocalDateTime.parse("2022-07-20T01:00:00"),LocalDateTime.parse("2022-07-20T04:00:00"),"sid","A"));
 		System.out.println("Data creation complete...");
 	}
 	public void showAllmeetings() {
@@ -77,8 +74,8 @@ public class DemoApplication implements CommandLineRunner{
 				"Meeting name: " + item.getName() +
 						", \nCapacity: " + item.getCapacity()+
 						", \nDescription: " + item.getDescription()+
-						", \nStatus: " +item.getStatus()+
-						", \nReservation: "+ item.getReservations().toString()
+						", \nStatus: " +item.getStatus()
+//						", \nReservation: "+ item.getReservations().toString()
 		);
 
 		return "";

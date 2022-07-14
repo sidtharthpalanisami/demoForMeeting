@@ -17,6 +17,7 @@ public class Reservation {
 
     @Id
     private String id;
+    private String meetingId;
     private LocalDateTime from;
     @Indexed(name = "expire_after" ,expireAfterSeconds = 3600)
     private LocalDateTime to;

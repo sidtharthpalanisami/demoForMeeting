@@ -1,10 +1,11 @@
 package com.example.demo.service;
 
-import com.example.demo.Repo.ItemRepo;
+import com.example.demo.Repo.MeetingRepo;
+import com.example.demo.Repo.ReservationRepo;
 import com.example.demo.exception.BasicException;
 import com.example.demo.model.Meeting;
+import com.example.demo.model.MeetingAndReservationModel;
 import com.example.demo.model.Reservation;
-import com.mongodb.BasicDBObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
@@ -20,13 +21,36 @@ import java.util.List;
 public class MeetingService {
 
     @Autowired
-    ItemRepo itemRepo;
+    ReservationRepo reservationRepo;
+    @Autowired
+    MeetingRepo itemRepo;
     @Autowired
     MongoOperations mongoOperation;
 
-    public Boolean checkReservationOverlapping(Meeting meeting,LocalDateTime fromDate,LocalDateTime toDate){
-        return meeting.getReservations().stream().filter(reservation -> compareDate(reservation,fromDate,toDate)).count()>0;
+    public Reservation UpdateReservation(Reservation reservation) throws BasicException {
+        Reservation reser = reservationRepo.findById(reservation.getId()).orElseThrow(()->new BasicException("Invalid Reservation Id"));
+        reser.setFrom(reservation.getFrom());
+        reser.setTo(reservation.getTo());
+        reser.setBookedBy(reservation.getBookedBy());
+        return saveReservation(reser);
     }
+
+    public Reservation saveReservation(Reservation reser) throws BasicException {
+        if (reser !=null) {
+            Meeting meeting = getAndCheckMeeting(reser.getMeetingId());
+            List<Reservation> reservationList = reservationRepo.findByMeetingId(meeting.getId());
+            if (reservationList.stream().anyMatch(r -> compareDate(r, reser.getFrom(), reser.getTo()))) {
+                throw new BasicException("Date Overlapping , Please give a new date");
+            } else {
+                return reservationRepo.save(reser);
+            }
+        } else
+            throw new BasicException("Invalid Reservation ID");
+    }
+
+//    public Boolean checkReservationOverlapping(Meeting meeting,LocalDateTime fromDate,LocalDateTime toDate){
+//        return meeting.getReservations().stream().filter(reservation -> compareDate(reservation,fromDate,toDate)).count()>0;
+//    }
     public Boolean compareDate(Reservation reservation, LocalDateTime from, LocalDateTime to){
         Boolean boo = (from.isBefore(reservation.getTo())
                 ||from.isEqual(reservation.getTo()))
@@ -40,19 +64,20 @@ public class MeetingService {
     }
 
 
-    public void getFromBoth(){
+    public List<MeetingAndReservationModel> getFromBoth(){
         LookupOperation lookupOperation = LookupOperation.newLookup().
                 from("reservation").
-                localField("reservations.rid").
-                foreignField("_id").
-                as("meeting_reservation");
+                localField("_id").
+                foreignField("meetingId").
+                as("reservationList");
 
-        AggregationOperation match = Aggregation.match(Criteria.where("meeting_reservation").size(1));
+//        AggregationOperation match = Aggregation.match(Criteria.where("meeting_reservation"));
 
-        Aggregation aggregation = Aggregation.newAggregation(lookupOperation, match);
+        Aggregation aggregation = Aggregation.newAggregation(lookupOperation);
 
-        List<BasicDBObject> results = mongoOperation.aggregate(aggregation, "meeting", BasicDBObject.class).getMappedResults();
+        List<MeetingAndReservationModel> results = mongoOperation.aggregate(aggregation, "meeting", MeetingAndReservationModel.class).getMappedResults();
 
+        return results;
     }
 
 }

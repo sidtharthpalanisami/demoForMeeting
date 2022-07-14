@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ItemRepo extends MongoRepository<Meeting,String> {
+public interface MeetingRepo extends MongoRepository<Meeting,String> {
 
 
     @Query(value = "{name:'?0'}")

@@ -23,6 +23,5 @@ public class Meeting {
     private int capacity;
     private String description;
     private String status;
-    private List<Reservation> reservations;
-
+//    private List<Reservation> reservations;
 }
